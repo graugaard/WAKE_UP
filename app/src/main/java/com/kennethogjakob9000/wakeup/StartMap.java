@@ -1,22 +1,67 @@
 package com.kennethogjakob9000.wakeup;
 
+import android.content.Intent;
+import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationServices;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class StartMap extends FragmentActivity {
+public class StartMap extends FragmentActivity implements
+        ConnectionCallbacks, OnConnectionFailedListener{
+
+    protected GoogleApiClient mGoogleApiClient;
+
+    /**
+     * Represents a geographical location.
+     */
+    protected Location mLastLocation;
+    private Marker lastLocationMarker;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private String username;
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_map);
+        Intent intent = getIntent();
+        username = intent.getStringExtra(LoginScreen.USERNAME);
+
+        buildGoogleApiClient();
+
         setUpMapIfNeeded();
+
+        //getLastLocation();
+
+    }
+
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onPostResume () {
+        super.onPostResume();
     }
 
     @Override
@@ -60,7 +105,45 @@ public class StartMap extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap () {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         mMap.setMyLocationEnabled(true);
+        lastLocationMarker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(0.0,0.0))
+                .title(""));
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    private void getLastLocation() {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        double latitude = 0.0, longitude = 0.0;
+        if (mLastLocation != null) {
+            latitude = mLastLocation.getLatitude();
+            longitude = mLastLocation.getLongitude();
+        }
+        String text = (mLastLocation == null) ? "No last position": username;
+        lastLocationMarker.setPosition(new LatLng(latitude,longitude));
+        lastLocationMarker.setTitle(text);
+    }
+
+    @Override
+    public void onConnected (Bundle bundle) {
+
+        getLastLocation();
+    }
+
+    @Override
+    public void onConnectionSuspended (int i) {
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed (ConnectionResult connectionResult) {
+
     }
 }
