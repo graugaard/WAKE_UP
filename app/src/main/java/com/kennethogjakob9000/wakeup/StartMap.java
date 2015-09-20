@@ -126,7 +126,7 @@ public class StartMap extends FragmentActivity implements
             latitude = mLastLocation.getLatitude();
             longitude = mLastLocation.getLongitude();
         }
-        String text = (mLastLocation == null) ? "No last position": username;
+        String text = (mLastLocation == null) ? "No last position" : username;
         lastLocationMarker.setPosition(new LatLng(latitude,longitude));
         lastLocationMarker.setTitle(text);
     }

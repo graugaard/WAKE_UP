@@ -8,12 +8,15 @@ import android.view.View;
 import android.content.Intent;
 import android.widget.EditText;
 
+import com.firebase.client.Firebase;
+
 public class LoginScreen extends AppCompatActivity {
     public final static String USERNAME = "com.mycompany.myfirstapp.MESSAGE";
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_screen);
+        Firebase.setAndroidContext(this);
     }
 
     @Override
