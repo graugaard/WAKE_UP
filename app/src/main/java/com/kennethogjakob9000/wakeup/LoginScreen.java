@@ -9,7 +9,9 @@ import android.content.Intent;
 import android.widget.EditText;
 
 import com.firebase.client.Firebase;
-
+/*
+ * Bit of comment to push branch to origin
+ */
 public class LoginScreen extends AppCompatActivity {
     public final static String USERNAME = "com.mycompany.myfirstapp.MESSAGE";
     @Override
