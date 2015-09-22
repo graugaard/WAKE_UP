@@ -6,6 +6,10 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -18,8 +22,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class StartMap extends FragmentActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener{
+        ConnectionCallbacks, OnConnectionFailedListener, ValueEventListener{
 
     protected GoogleApiClient mGoogleApiClient;
 
@@ -29,19 +36,57 @@ public class StartMap extends FragmentActivity implements
     protected Location mLastLocation;
     private Marker lastLocationMarker;
 
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private GoogleMap mMap; // Might be null if Google Play services API is not available.
 
     private String username;
+
+    String databasePath = "https://kennethogjakob-wakeup.firebaseio.com/users";
+
+    private Firebase ref = null;
+
+    private Firebase userRef = null;
+
+    private User user = null;
+
+    private Map<String, Marker> userToMarker;
+
+    private Map<String, User> usernameToUser = new HashMap<String, User>();
+
+    private UserUpdate userUpdate = null;
+
+    private int counter = 0;
+
+    public StartMap () {
+
+    }
+
     @Override
     protected void onCreate (Bundle savedInstanceState) {
+        userToMarker = new HashMap<String, Marker>();
+
+        String test = "hi";
+        assert test == "";
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_map);
         Intent intent = getIntent();
         username = intent.getStringExtra(LoginScreen.USERNAME);
 
+
+        //Firebase.setAndroidContext(this);
+
+        ref = new Firebase( databasePath + "/users/" );
+
+        userRef = ref.child(username);
+
+        user = new User(username, userRef);
+
         buildGoogleApiClient();
 
         setUpMapIfNeeded();
+
+        //userUpdate = new UserUpdate(userToMarker, mMap, ref, usernameToUser);
+
+        ref.addValueEventListener(this);
 
         //getLastLocation();
 
@@ -107,7 +152,7 @@ public class StartMap extends FragmentActivity implements
     private void setUpMap () {
         mMap.setMyLocationEnabled(true);
         lastLocationMarker = mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(0.0,0.0))
+                .position(new LatLng(0.0, 0.0))
                 .title(""));
     }
 
@@ -129,6 +174,8 @@ public class StartMap extends FragmentActivity implements
         String text = (mLastLocation == null) ? "No last position" : username;
         lastLocationMarker.setPosition(new LatLng(latitude,longitude));
         lastLocationMarker.setTitle(text);
+
+        user.updateLocation(latitude, longitude);
     }
 
     @Override
@@ -144,6 +191,32 @@ public class StartMap extends FragmentActivity implements
 
     @Override
     public void onConnectionFailed (ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onDataChange (DataSnapshot dataSnapshot) {
+
+
+        for (DataSnapshot postSnapShot: dataSnapshot.getChildren()) {
+            User user = postSnapShot.getValue(User.class);
+
+            if (userToMarker.containsKey(user.getUsername())) {
+                Marker m = userToMarker.get(user.getUsername());
+                m.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
+            } else {
+                Marker m = mMap.addMarker( new MarkerOptions()
+                        .position(new LatLng(user.getLatitude(), user.getLongitude()))
+                        .title(user.getUsername()));
+                userToMarker.put(user.getUsername(), m);
+            }
+
+        }
+
+    }
+
+    @Override
+    public void onCancelled (FirebaseError firebaseError) {
 
     }
 }
