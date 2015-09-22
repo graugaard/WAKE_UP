@@ -23,7 +23,7 @@ public class UserUpdate implements ValueEventListener {
     private Map<String,Marker> usernameMarkerMap = null;
     private Map<String,User> userMap = null;
     private GoogleMap mMap = null;
-
+    private boolean running;
     UserUpdate (Map<String, Marker> map, GoogleMap mMap, Firebase ref, Map<String, User> userMap) {
         this.usernameMarkerMap = map;
         this.userMap = userMap;
@@ -58,6 +58,10 @@ public class UserUpdate implements ValueEventListener {
                     marker);
         }
         */
+    }
+
+    public void stop() {
+        running = false;
     }
 
     @Override

@@ -84,9 +84,9 @@ public class StartMap extends FragmentActivity implements
 
         setUpMapIfNeeded();
 
-        //userUpdate = new UserUpdate(userToMarker, mMap, ref, usernameToUser);
+        userUpdate = new UserUpdate(userToMarker, mMap, ref, usernameToUser);
 
-        ref.addValueEventListener(this);
+        //ref.addValueEventListener(this);
 
         //getLastLocation();
 
