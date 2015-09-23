@@ -1,5 +1,7 @@
 package com.kennethogjakob9000.wakeup;
 
+import android.location.Location;
+
 import com.firebase.client.Firebase;
 
 /**
@@ -20,8 +22,8 @@ public class User {
         this.userRef = userRef;
     }
 
-    public User( String username, Firebase userRef) {
-        new User(username, 0.0, 0.0, userRef);
+    public User() {
+        // use default values
     }
 
     public void updateLocation(double longitude, double latitude) {
@@ -44,5 +46,9 @@ public class User {
 
     public double getLongitude() {
         return longitude;
+    }
+
+    public void updateLocation (Location location) {
+        updateLocation(location.getLongitude(), location.getLatitude());
     }
 }

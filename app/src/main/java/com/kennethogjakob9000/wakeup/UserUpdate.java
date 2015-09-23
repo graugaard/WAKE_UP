@@ -1,9 +1,16 @@
 package com.kennethogjakob9000.wakeup;
 
+import android.location.Location;
+import android.os.Bundle;
+
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -17,55 +24,36 @@ import java.util.Set;
 /**
  * Created by jakob on 22/09/15.
  */
-public class UserUpdate implements ValueEventListener {
+public class UserUpdate {
 
-    private Firebase database  = null;
-    private Map<String,Marker> usernameMarkerMap = null;
-    private Map<String,User> userMap = null;
-    private GoogleMap mMap = null;
-    private boolean running;
-    UserUpdate (Map<String, Marker> map, GoogleMap mMap, Firebase ref, Map<String, User> userMap) {
-        this.usernameMarkerMap = map;
-        this.userMap = userMap;
-        this.mMap = mMap;
-        this.database = ref;
-    }
+    GoogleApiClient mGoogleApiClient = null;
 
-    @Override
-    public void onDataChange (DataSnapshot dataSnapshot) {
+    /**
+     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
+     */
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
 
+    /**
+     * The fastest rate for active location updates. Exact. Updates will never be more frequent
+     * than this value.
+     */
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
-        for (DataSnapshot postSnapShot: dataSnapshot.getChildren()) {
-            User user = postSnapShot.getValue(User.class);
+    private boolean mRequestingLocationUpdates;
+    private LocationRequest mLocationRequest = null;
+    User user = null;
 
-            if (usernameMarkerMap.containsKey(user.getUsername())) {
-                Marker m = usernameMarkerMap.get(user.getUsername());
-                m.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
-            } else {
-                Marker m = mMap.addMarker( new MarkerOptions()
-                    .position(new LatLng(user.getLatitude(), user.getLongitude()))
-                    .title(user.getUsername()));
-                usernameMarkerMap.put(user.getUsername(), m);
-            }
+    public UserUpdate(GoogleApiClient client, User user) {
+        mGoogleApiClient = client;
+        this.user = user;
+        try {
+            Thread.sleep(6000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        /*
-        Set<User> list = ((Map<User, Marker>) dataSnapshot.getValue()).keySet();
-        for (User user: list) {
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(user.getLatitude(),user.getLongitude()))
-                        .title(""));
-            map.put(user,
-                    marker);
-        }
-        */
     }
 
-    public void stop() {
-        running = false;
-    }
 
-    @Override
-    public void onCancelled (FirebaseError firebaseError) {
-        System.out.println("Error on read: " + firebaseError);
-    }
+
 }

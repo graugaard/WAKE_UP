@@ -14,7 +14,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationListener;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -26,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StartMap extends FragmentActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener, ValueEventListener{
+        ConnectionCallbacks, OnConnectionFailedListener, ValueEventListener, LocationListener {
 
     protected GoogleApiClient mGoogleApiClient;
 
@@ -35,16 +37,17 @@ public class StartMap extends FragmentActivity implements
      */
     protected Location mLastLocation;
     private Marker lastLocationMarker;
+    private LocationRequest mLocationRequest = null;
 
     private GoogleMap mMap; // Might be null if Google Play services API is not available.
 
     private String username;
 
-    String databasePath = "https://kennethogjakob-wakeup.firebaseio.com/users";
+    String databasePath = "https://kennethogjakob-wakeup.firebaseio.com";
 
-    private Firebase ref = null;
+    //private Firebase ref = null;
 
-    private Firebase userRef = null;
+    //private Firebase userRef = null;
 
     private User user = null;
 
@@ -56,8 +59,23 @@ public class StartMap extends FragmentActivity implements
 
     private int counter = 0;
 
-    public StartMap () {
+    private boolean running = true;
 
+    /**
+     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
+     */
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+
+    /**
+     * The fastest rate for active location updates. Exact. Updates will never be more frequent
+     * than this value.
+     */
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+    private boolean mRequestingLocationUpdates;
+
+    public StartMap () {
     }
 
     @Override
@@ -65,7 +83,6 @@ public class StartMap extends FragmentActivity implements
         userToMarker = new HashMap<String, Marker>();
 
         String test = "hi";
-        assert test == "";
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_map);
         Intent intent = getIntent();
@@ -74,20 +91,22 @@ public class StartMap extends FragmentActivity implements
 
         //Firebase.setAndroidContext(this);
 
-        ref = new Firebase( databasePath + "/users/" );
+        Firebase ref = new Firebase( databasePath );
 
-        userRef = ref.child(username);
 
-        user = new User(username, userRef);
+        Firebase userRef = ref.child("users").child(username);
+
+        user = new User(username, 0.0, 0.0, userRef);
 
         buildGoogleApiClient();
 
         setUpMapIfNeeded();
 
-        userUpdate = new UserUpdate(userToMarker, mMap, ref, usernameToUser);
+        userUpdate = new UserUpdate(mGoogleApiClient, user);
 
-        //ref.addValueEventListener(this);
+        ref.child("users").addValueEventListener(this);
 
+        mRequestingLocationUpdates = false;
         //getLastLocation();
 
     }
@@ -171,9 +190,11 @@ public class StartMap extends FragmentActivity implements
             latitude = mLastLocation.getLatitude();
             longitude = mLastLocation.getLongitude();
         }
+
         String text = (mLastLocation == null) ? "No last position" : username;
         lastLocationMarker.setPosition(new LatLng(latitude,longitude));
         lastLocationMarker.setTitle(text);
+
 
         user.updateLocation(latitude, longitude);
     }
@@ -181,8 +202,16 @@ public class StartMap extends FragmentActivity implements
     @Override
     public void onConnected (Bundle bundle) {
 
-        getLastLocation();
+        if (mLastLocation == null) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
     }
+
+
+
 
     @Override
     public void onConnectionSuspended (int i) {
@@ -197,8 +226,10 @@ public class StartMap extends FragmentActivity implements
     @Override
     public void onDataChange (DataSnapshot dataSnapshot) {
 
+        System.out.println(dataSnapshot.getChildrenCount() + " are a lot");
 
         for (DataSnapshot postSnapShot: dataSnapshot.getChildren()) {
+            System.out.println("Am I here?");
             User user = postSnapShot.getValue(User.class);
 
             if (userToMarker.containsKey(user.getUsername())) {
@@ -215,8 +246,32 @@ public class StartMap extends FragmentActivity implements
 
     }
 
+
     @Override
     public void onCancelled (FirebaseError firebaseError) {
 
+    }
+
+    private void createLocationRequest () {
+        mLocationRequest =  new LocationRequest();
+
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi
+                .requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    public void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    @Override
+    public void onLocationChanged (Location location) {
+        mLastLocation = location;
+        getLastLocation();
     }
 }
