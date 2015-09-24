@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 
 import com.firebase.client.DataSnapshot;
@@ -57,9 +58,13 @@ public class StartMap extends FragmentActivity implements
 
     private UserUpdate userUpdate = null;
 
-    private int counter = 0;
+    protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
 
-    private boolean running = true;
+
+    protected static final String TAG = "location-updates-sample";
+
+    protected final static String LOCATION_KEY = "location-key";
+    protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key";
 
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
@@ -106,7 +111,10 @@ public class StartMap extends FragmentActivity implements
 
         ref.child("users").addValueEventListener(this);
 
-        mRequestingLocationUpdates = false;
+        mRequestingLocationUpdates = true;
+
+        updateValuesFromBundle(savedInstanceState);
+
         //getLastLocation();
 
     }
@@ -132,6 +140,9 @@ public class StartMap extends FragmentActivity implements
     protected void onResume () {
         super.onResume();
         setUpMapIfNeeded();
+        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
     }
 
     /**
@@ -181,6 +192,7 @@ public class StartMap extends FragmentActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+        createLocationRequest();
     }
 
     private void getLastLocation() {
@@ -244,6 +256,30 @@ public class StartMap extends FragmentActivity implements
 
         }
 
+    }
+
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        Log.i(TAG, "Updating values from bundle");
+        if (savedInstanceState != null) {
+            // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
+            // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
+            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                        REQUESTING_LOCATION_UPDATES_KEY);
+            }
+
+            // Update the value of mCurrentLocation from the Bundle and update the UI to show the
+            // correct latitude and longitude.
+            if (savedInstanceState.keySet().contains(LOCATION_KEY)) {
+                // Since LOCATION_KEY was found in the Bundle, we can be sure that mCurrentLocation
+                // is not null.
+                mLastLocation = savedInstanceState.getParcelable(LOCATION_KEY);
+            }
+
+            // Update the value of mLastUpdateTime from the Bundle and update the UI.
+
+            getLastLocation();
+        }
     }
 
 
