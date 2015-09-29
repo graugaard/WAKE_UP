@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 
 
 import com.firebase.client.DataSnapshot;
@@ -28,7 +31,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StartMap extends FragmentActivity implements
+public class StartMap extends AppCompatActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, ValueEventListener, LocationListener {
 
     protected GoogleApiClient mGoogleApiClient;
@@ -302,5 +305,12 @@ public class StartMap extends FragmentActivity implements
     public void onLocationChanged (Location location) {
         mLastLocation = location;
         getLastLocation();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_start_map, menu);
+        return true;
     }
 }

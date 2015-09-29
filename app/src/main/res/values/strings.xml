@@ -8,4 +8,7 @@
     <string name="password">Password</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">WAKE UP!</string>
+    <string name="title_activity_wifi_of_users">Wifi_of_users</string>
+    <string name="wifi">WIFI</string>
+    <string name="hello_world">Hello world!</string>
 </resources>
