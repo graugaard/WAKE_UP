@@ -26,8 +26,9 @@ public class User {
         // use default values
     }
 
-    public void updateLocation(double longitude, double latitude) {
-        this.latitude = latitude;
+    public void updateLocation(double latidude, double longitude) {
+        this.latitude = latidude;
+
         this.longitude = longitude;
 
         if (userRef != null) {
@@ -49,6 +50,6 @@ public class User {
     }
 
     public void updateLocation (Location location) {
-        updateLocation(location.getLongitude(), location.getLatitude());
+        updateLocation(location.getLatitude(), location.getLongitude());
     }
 }

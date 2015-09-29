@@ -80,14 +80,10 @@ public class StartMap extends FragmentActivity implements
 
     private boolean mRequestingLocationUpdates;
 
-    public StartMap () {
-    }
-
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         userToMarker = new HashMap<String, Marker>();
 
-        String test = "hi";
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_map);
         Intent intent = getIntent();
@@ -196,7 +192,6 @@ public class StartMap extends FragmentActivity implements
     }
 
     private void getLastLocation() {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         double latitude = 0.0, longitude = 0.0;
         if (mLastLocation != null) {
             latitude = mLastLocation.getLatitude();
@@ -208,7 +203,7 @@ public class StartMap extends FragmentActivity implements
         lastLocationMarker.setTitle(text);
 
 
-        user.updateLocation(latitude, longitude);
+        user.updateLocation(mLastLocation);
     }
 
     @Override
@@ -238,10 +233,7 @@ public class StartMap extends FragmentActivity implements
     @Override
     public void onDataChange (DataSnapshot dataSnapshot) {
 
-        System.out.println(dataSnapshot.getChildrenCount() + " are a lot");
-
         for (DataSnapshot postSnapShot: dataSnapshot.getChildren()) {
-            System.out.println("Am I here?");
             User user = postSnapShot.getValue(User.class);
 
             if (userToMarker.containsKey(user.getUsername())) {
