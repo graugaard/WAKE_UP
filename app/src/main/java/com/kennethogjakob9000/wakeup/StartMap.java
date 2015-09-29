@@ -192,6 +192,7 @@ public class StartMap extends FragmentActivity implements
     }
 
     private void getLastLocation() {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         double latitude = 0.0, longitude = 0.0;
         if (mLastLocation != null) {
             latitude = mLastLocation.getLatitude();
@@ -203,7 +204,7 @@ public class StartMap extends FragmentActivity implements
         lastLocationMarker.setTitle(text);
 
 
-        user.updateLocation(mLastLocation);
+        user.updateLocation(latitude, longitude);
     }
 
     @Override
