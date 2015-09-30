@@ -1,8 +1,9 @@
 package com.kennethogjakob9000.wakeup;
 
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.support.v4.app.FragmentActivity;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -53,7 +54,7 @@ public class StartMap extends AppCompatActivity implements
 
     //private Firebase userRef = null;
 
-    private User user = null;
+    private User ourUser = null;
 
     private Map<String, Marker> userToMarker;
 
@@ -92,29 +93,26 @@ public class StartMap extends AppCompatActivity implements
         Intent intent = getIntent();
         username = intent.getStringExtra(LoginScreen.USERNAME);
 
-
-        //Firebase.setAndroidContext(this);
-
         Firebase ref = new Firebase( databasePath );
 
+        WifiManager wifiMgr = (WifiManager)
+                getSystemService(Context.WIFI_SERVICE);
 
         Firebase userRef = ref.child("users").child(username);
 
-        user = new User(username, 0.0, 0.0, userRef);
+        ourUser = new User(username, 0.0, 0.0, userRef, wifiMgr);
 
         buildGoogleApiClient();
 
         setUpMapIfNeeded();
 
-        userUpdate = new UserUpdate(mGoogleApiClient, user);
+        userUpdate = new UserUpdate(mGoogleApiClient, ourUser);
 
         ref.child("users").addValueEventListener(this);
 
         mRequestingLocationUpdates = true;
 
         updateValuesFromBundle(savedInstanceState);
-
-        //getLastLocation();
 
     }
 
@@ -150,10 +148,10 @@ public class StartMap extends AppCompatActivity implements
      * call {@link #setUpMap()} once when {@link #mMap} is not null.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
-     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
+     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the ourUser to
      * install/update the Google Play services APK on their device.
      * <p/>
-     * A user can return to this FragmentActivity after following the prompt and correctly
+     * A ourUser can return to this FragmentActivity after following the prompt and correctly
      * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
      * have been completely destroyed during this process (it is likely that it would only be
      * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
@@ -207,7 +205,7 @@ public class StartMap extends AppCompatActivity implements
         lastLocationMarker.setTitle(text);
 
 
-        user.updateLocation(latitude, longitude);
+        ourUser.updateLocation(latitude, longitude);
     }
 
     @Override
@@ -243,8 +241,13 @@ public class StartMap extends AppCompatActivity implements
             if (userToMarker.containsKey(user.getUsername())) {
                 Marker m = userToMarker.get(user.getUsername());
                 m.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
+                if (user.getNetworkname().equals( ourUser.getNetworkname())
+                        && user.getUsername().equals(ourUser.getUsername())) {
+                    m.setSnippet("Test");
+                }
+                userToMarker.put(user.getUsername(), m);
             } else {
-                Marker m = mMap.addMarker( new MarkerOptions()
+                Marker m = mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(user.getLatitude(), user.getLongitude()))
                         .title(user.getUsername()));
                 userToMarker.put(user.getUsername(), m);
@@ -305,12 +308,18 @@ public class StartMap extends AppCompatActivity implements
     public void onLocationChanged (Location location) {
         mLastLocation = location;
         getLastLocation();
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_start_map, menu);
+        return true;
+    }
+
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.getItem(0).setTitle(ourUser.getNetworkname());
         return true;
     }
 }

@@ -1,6 +1,8 @@
 package com.kennethogjakob9000.wakeup;
 
 import android.location.Location;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 
 import com.firebase.client.Firebase;
 
@@ -14,12 +16,17 @@ public class User {
     private double longitude = 0.0;
 
     private Firebase userRef = null;
+    private WifiManager wifiMgr = null;
+    private String networkname = "";
+    private String networkAddr = "";
 
-    public User( String username, double latitude, double longitude, Firebase userRef) {
+    public User( String username, double latitude, double longitude, Firebase userRef,
+                 WifiManager wifiMgr) {
         this.username = username;
         this.latitude = latitude;
         this.longitude = longitude;
         this.userRef = userRef;
+        this.wifiMgr = wifiMgr;
     }
 
     public User() {
@@ -35,6 +42,17 @@ public class User {
             userRef.setValue(this);
         }
 
+        updateNetworkInfo();
+
+    }
+
+    private void updateNetworkInfo () {
+        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+        if (wifiInfo != null ) {
+            networkname = wifiInfo.getSSID();
+        } else {
+            networkname = "Can't find WIFI";
+        }
     }
 
     public String getUsername () {
@@ -47,6 +65,10 @@ public class User {
 
     public double getLongitude() {
         return longitude;
+    }
+
+    public String getNetworkname () {
+        return networkname;
     }
 
     public void updateLocation (Location location) {
