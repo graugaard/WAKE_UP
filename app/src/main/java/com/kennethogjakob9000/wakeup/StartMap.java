@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 
 
 import com.firebase.client.DataSnapshot;
@@ -83,6 +84,8 @@ public class StartMap extends AppCompatActivity implements
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     private boolean mRequestingLocationUpdates;
+
+    private Menu mainMenu = null;
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -308,18 +311,20 @@ public class StartMap extends AppCompatActivity implements
     public void onLocationChanged (Location location) {
         mLastLocation = location;
         getLastLocation();
-
+        MenuItem item = null;
+        if (mainMenu != null) {
+            item = mainMenu.getItem(0);
+        }
+        if (item != null) {
+            item.setTitle("WIFI : " + ourUser.getNetworkname());
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_start_map, menu);
-        return true;
-    }
-
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.getItem(0).setTitle(ourUser.getNetworkname());
+        mainMenu = menu;
         return true;
     }
 }
