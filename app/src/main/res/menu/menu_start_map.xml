@@ -3,5 +3,13 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/menu_start_map"
           android:title="@string/wifi"
-          app:showAsAction="ifRoom"/>
+          app:showAsAction="ifRoom">
+        <menu>
+            <item android:id="@+id/goto_reminders"
+                  android:title="@string/reminders"
+                  app:showAsAction="ifRoom"
+                  android:onClick="gotoReminders"
+                />
+        </menu>
+    </item>
 </menu>

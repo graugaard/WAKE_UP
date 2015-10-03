@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
 
@@ -40,6 +41,9 @@ public class StartMap extends AppCompatActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, ValueEventListener, LocationListener {
 
     protected GoogleApiClient mGoogleApiClient;
+
+    public final String IGNORE = "ignore";
+    public static final String REMIND = "remind";
 
     /**
      * Represents a geographical location.
@@ -92,8 +96,13 @@ public class StartMap extends AppCompatActivity implements
 
     Set<String> onSameNetwork = null;
 
+    ArrayList<String> remind = null;
+
     @Override
     protected void onCreate (Bundle savedInstanceState) {
+
+        remind = new ArrayList<String>();
+
         userToMarker = new HashMap<String, Marker>();
 
         onSameNetwork = new HashSet<String>();
@@ -141,17 +150,26 @@ public class StartMap extends AppCompatActivity implements
     }
 
     @Override
-    protected void onPostResume () {
-        super.onPostResume();
-    }
-
-    @Override
     protected void onResume () {
         super.onResume();
         setUpMapIfNeeded();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
         }
+        ArrayList<String> remindusers = getIntent().getStringArrayListExtra(REMIND);
+        if (remindusers != null) {
+            remind = new ArrayList<>();
+            remind = remindusers;
+            System.out.println("Got something of length: " + remindusers.size());
+            System.out.println("Got: " + remind);
+        } else
+            System.out.println("Didn't get anything");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        remind = new ArrayList<>();
     }
 
     /**
@@ -261,7 +279,12 @@ public class StartMap extends AppCompatActivity implements
 
                 if (user.getNetworkname().equals(ourUser.getNetworkname()) &&
                         !onSameNetwork.contains(user.getUsername())) {
-                    toast(user.getUsername() + " logged onto same wifi");
+                    // remind of user on the network if he is.
+                    if (remind.contains(user.getUsername().trim())) {
+                        toast(user.getUsername() + " logged onto same wifi");
+                        System.out.println("Username trimmed: " + user.getUsername().trim());
+                        System.out.println("remind: " + remind);
+                    }
                     onSameNetwork.add(user.getUsername());
                 }
                 // leaf network, so remove user from those on our network
@@ -352,5 +375,13 @@ public class StartMap extends AppCompatActivity implements
         Context context = getApplicationContext();
         int duration = Toast.LENGTH_SHORT;
         Toast.makeText(context, msg, duration).show();
+    }
+
+    public void gotoReminders(MenuItem item) {
+        //EditText edit = (EditText) findViewById(R.id.user_option)
+        Intent intent = new Intent(this, RemindersActivity.class);
+        intent.putStringArrayListExtra(REMIND, remind);
+        intent.putExtra(LoginScreen.USERNAME, username);
+        startActivity(intent);
     }
 }

@@ -11,4 +11,9 @@
     <string name="title_activity_wifi_of_users">Wifi_of_users</string>
     <string name="wifi">WIFI</string>
     <string name="hello_world">Hello world!</string>
+    <string name="reminders">Set reminders</string>
+    <string name="title_activity_reminders">Reminders</string>
+    <string name="ignore">Ignore</string>
+    <string name="remind">Remind</string>
+    <string name="map">Return to Map</string>
 </resources>

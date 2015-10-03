@@ -45,7 +45,7 @@ public class LoginScreen extends AppCompatActivity {
         Intent intent = new Intent(this,StartMap.class);
         EditText editText = (EditText) findViewById(R.id.username);
         String username = editText.getText().toString();
-        intent.putExtra(USERNAME, username);
+        intent.putExtra(USERNAME, username.trim());
         startActivity(intent);
     }
 }
