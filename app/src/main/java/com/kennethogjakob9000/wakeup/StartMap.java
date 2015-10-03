@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 
 import com.firebase.client.DataSnapshot;
@@ -32,6 +33,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.*;
+
 
 public class StartMap extends AppCompatActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, ValueEventListener, LocationListener {
@@ -87,9 +90,13 @@ public class StartMap extends AppCompatActivity implements
 
     private Menu mainMenu = null;
 
+    Set<String> onSameNetwork = null;
+
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         userToMarker = new HashMap<String, Marker>();
+
+        onSameNetwork = new HashSet<String>();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_map);
@@ -104,6 +111,8 @@ public class StartMap extends AppCompatActivity implements
         Firebase userRef = ref.child("users").child(username);
 
         ourUser = new User(username, 0.0, 0.0, userRef, wifiMgr);
+
+        onSameNetwork.add(username);
 
         buildGoogleApiClient();
 
@@ -249,6 +258,17 @@ public class StartMap extends AppCompatActivity implements
                     m.setSnippet("Test");
                 }
                 userToMarker.put(user.getUsername(), m);
+
+                if (user.getNetworkname().equals(ourUser.getNetworkname()) &&
+                        !onSameNetwork.contains(user.getUsername())) {
+                    toast(user.getUsername() + " logged onto same wifi");
+                    onSameNetwork.add(user.getUsername());
+                }
+                // leaf network, so remove user from those on our network
+                else if (!user.getNetworkname().equals(ourUser.getNetworkname()) &&
+                        onSameNetwork.contains(user.getUsername())) {
+                    onSameNetwork.remove(user.getUsername());
+                }
             } else {
                 Marker m = mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(user.getLatitude(), user.getLongitude()))
@@ -326,5 +346,11 @@ public class StartMap extends AppCompatActivity implements
         inflater.inflate(R.menu.menu_start_map, menu);
         mainMenu = menu;
         return true;
+    }
+
+    public void toast(String msg) {
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast.makeText(context, msg, duration).show();
     }
 }
