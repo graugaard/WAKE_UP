@@ -40,9 +40,17 @@
         android:onClick="ignore"/>
     </LinearLayout>
     <Button
+        android:id="@+id/return_button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/map"
         android:layout_below="@+id/ignore_remind_buttons"
         android:onClick="returnToMap"/>
+    <ListView
+        android:id="@+id/listview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/return_button">
+
+    </ListView>
 </RelativeLayout>
