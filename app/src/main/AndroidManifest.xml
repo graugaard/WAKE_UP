@@ -42,8 +42,14 @@
         </activity>
         <activity
             android:name=".RemindersActivity"
-            android:label="@string/title_activity_reminders">
+            android:label="@string/title_activity_reminders" >
         </activity>
+
+        <service
+            android:name=".UserRemind"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
     </application>
 
 </manifest>

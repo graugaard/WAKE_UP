@@ -7,6 +7,13 @@
         android:id="@+id/name_of_user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TODO"/>
+        android:text="username"/>
+    <TextView
+        android:id="@+id/user_distance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/name_of_user"
+        android:text="distance"
+        />
 
 </RelativeLayout>

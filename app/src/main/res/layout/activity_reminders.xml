@@ -10,15 +10,23 @@
                 tools:context="com.kennethogjakob9000.wakeup.RemindersActivity">
     <EditText
         android:id="@+id/user_option"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:hint="User to ignore"/>
+        android:hint="Username"/>
+    <EditText
+        android:id="@+id/distance"
+        android:layout_below="@id/user_option"
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:hint="Distance in meters"/>
     <LinearLayout
         android:id="@+id/ignore_remind_buttons"
         android:layout_width="fill_parent"
-        android:layout_below="@+id/user_option"
+        android:layout_below="@+id/distance"
         android:layout_height="wrap_content">
     <Button
         android:id="@+id/remind_button"
@@ -26,7 +34,7 @@
         android:layout_weight=".5"
         android:layout_height="wrap_content"
         android:text="@string/remind"
-        android:layout_below="@id/user_option"
+        android:layout_below="@id/distance"
         android:layout_alignParentLeft="true"
         android:onClick="remind"/>
     <Button
@@ -35,7 +43,7 @@
         android:layout_weight=".5"
         android:layout_height="wrap_content"
         android:text="@string/ignore"
-        android:layout_below="@id/user_option"
+        android:layout_below="@id/distance"
         android:layout_alignParentRight="true"
         android:onClick="ignore"/>
     </LinearLayout>

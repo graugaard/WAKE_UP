@@ -169,7 +169,11 @@ public class StartMap extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        remind = new ArrayList<>();
+        Intent intent = new Intent(this, UserRemind.class);
+        UserRemind reminder = new UserRemind();
+        intent.putExtra(LoginScreen.USERNAME,username);
+        intent.putStringArrayListExtra(REMIND, remind);
+        startService(intent);
     }
 
     /**

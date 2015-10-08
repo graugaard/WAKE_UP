@@ -16,6 +16,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.deser.Deserializers;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,11 +25,20 @@ import java.util.Set;
 
 public class RemindersActivity extends AppCompatActivity {
 
-    ArrayList<String> remindUsers = null;
+    ArrayList<userData> remindUsers = null;
     Set<String> users = null;
     private String username = "";
+    ListView lview = null;
     public class userData  {
         String name = "";
+        int dist = 5;
+        userData(String n, int dist) {
+            name = n;
+            this.dist = dist;
+        }
+        userData() {
+            ; // we already initialized name
+        }
     }
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -39,28 +50,35 @@ public class RemindersActivity extends AppCompatActivity {
 
     protected void onResume() {
         super.onResume();
-        remindUsers = getIntent().getStringArrayListExtra(StartMap.REMIND);
+        List<String>list = getIntent().getStringArrayListExtra(StartMap.REMIND);
         users = new HashSet<String>();
-        for(String n : remindUsers) {
-            users.add(n);
+        remindUsers = new ArrayList<userData>();
+        if (list != null) {
+            for (String s : list) {
+                users.add(s);
+                userData u = new userData();
+                u.name = s;
+                remindUsers.add(u);
+            }
         }
 
-        username = getIntent().getStringExtra(LoginScreen.USERNAME);
 
-        remindUsers = getIntent().getStringArrayListExtra(StartMap.REMIND);
         username = getIntent().getStringExtra(LoginScreen.USERNAME);
 
         final Adapter adapter = new Adapter();
         ListView listview = (ListView)findViewById(R.id.listview);
+        lview = listview;
         listview.setAdapter(adapter);
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-                userData data = adapter.getUserdata(position);
-                Toast.makeText(RemindersActivity.this,data.name,Toast.LENGTH_LONG).show();
-            }
-        }
+                                            @Override
+                                            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+                                                userData data = adapter.getUserdata(position);
+                                                Toast.makeText(RemindersActivity.this,
+                                                        data.name + "\n" + data.dist,
+                                                        Toast.LENGTH_LONG).show();
+                                            }
+                                        }
         );
 
     }
@@ -89,8 +107,32 @@ public class RemindersActivity extends AppCompatActivity {
 
     public void remind(View view) {
         EditText edit = (EditText) findViewById(R.id.user_option);
+        EditText dist = (EditText) findViewById(R.id.distance);
         String text = edit.getText().toString().trim();
+        String d = dist.getText().toString().trim();
+        int distance = 0;
+        if (!d.equals("")) {
+            try {
+                distance = Integer.parseInt(d);
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Distance must be an int, setting to default 5 m",
+                        Toast.LENGTH_SHORT)
+                        .show();
+                distance = 5;
+            }
+        }
+        if (!users.contains(text)) {
             users.add(text);
+            userData u = new userData(text,5);
+            remindUsers.add(u);
+            ((BaseAdapter)lview.getAdapter()).notifyDataSetChanged();
+        }
+        for (userData u : remindUsers) {
+            if (u.name.equals(text)) {
+                u.dist = distance;
+                ((BaseAdapter)lview.getAdapter()).notifyDataSetChanged();
+            }
+        }
     }
 
     public void ignore(View view) {
@@ -101,10 +143,11 @@ public class RemindersActivity extends AppCompatActivity {
 
     public void returnToMap(View view) {
         Intent intent = new Intent(this, StartMap.class);
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<String>(remindUsers.size());
+        ArrayList<Integer> dist = new ArrayList<>(remindUsers.size());
+        for (userData u : remindUsers) {
+            list.add(u.name);
 
-        for (String n : users) {
-            list.add(n);
         }
         System.out.println("Set has size: " + users.size() + " and list has size: " + list.size());
         intent.putStringArrayListExtra(StartMap.REMIND, list);
@@ -112,6 +155,8 @@ public class RemindersActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+
 
     public class Adapter extends BaseAdapter {
 
@@ -139,8 +184,10 @@ public class RemindersActivity extends AppCompatActivity {
                 convertView = inflater.inflate(R.layout.listitem,parent,false);
             }
             TextView text = (TextView)convertView.findViewById(R.id.name_of_user);
+            TextView dist = (TextView)convertView.findViewById(R.id.user_distance);
             userData userdata = data.get(position);
             text.setText(userdata.name);
+            dist.setText(userdata.dist + " m");
             return convertView;
         }
 
@@ -150,13 +197,8 @@ public class RemindersActivity extends AppCompatActivity {
     }
 
     List<userData> getDataForListView() {
-        List<userData> list = new ArrayList<userData>();
-        for (String s: remindUsers) {
-            userData userdata = new userData();
-            userdata.name = s;
-            list.add(userdata);
-        }
-        return list;
+
+        return remindUsers;
     }
 
 }
